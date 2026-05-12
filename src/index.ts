@@ -24,6 +24,7 @@ import { spawn, ChildProcess } from "node:child_process";
 
 const NOTIFY_MAX_LEN = 1000;
 const DEFAULT_NAME = "pi";
+const INTER_AGENT_PROJECT = "/workspace/projects/inter-agent";
 
 // ── State ───────────────────────────────────────────────────────────────────
 
@@ -65,9 +66,12 @@ function notify(title: string, body: string, type: "info" | "warning" | "error" 
 
 function execUv(args: string[]): Promise<{ stdout: string; stderr: string; code: number | null }> {
   return new Promise((resolve) => {
+    const env = { ...process.env, PYTHONUNBUFFERED: "1" };
     const proc = spawn("uv", ["run", ...args], {
       stdio: ["ignore", "pipe", "pipe"],
       shell: false,
+      cwd: INTER_AGENT_PROJECT,
+      env,
     });
     let stdout = "";
     let stderr = "";
@@ -95,9 +99,12 @@ function startListener(pi: ExtensionAPI, ctx: ExtensionContext, name: string, la
   const args = ["inter-agent-connect", name];
   if (label) args.push("--label", label);
 
+  const env = { ...process.env, PYTHONUNBUFFERED: "1" };
   const proc = spawn("uv", ["run", ...args], {
     stdio: ["ignore", "pipe", "pipe"],
     shell: false,
+    cwd: INTER_AGENT_PROJECT,
+    env,
   });
 
   listenerProc = proc;
