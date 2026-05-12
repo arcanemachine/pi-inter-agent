@@ -98,6 +98,31 @@ Project settings (`.pi/settings.json`) override global settings (`~/.pi/agent/se
    /inter-agent-list
    ```
 
+## Finishing Up
+
+When you're done using the inter-agent bus, you have two choices depending on whether others are still using it.
+
+### Disconnect yourself (server keeps running)
+
+This stops your listener and removes you from the bus, but leaves the server running for other agents:
+
+```
+/inter-agent-disconnect
+```
+
+### Shut down the server entirely
+
+This stops the server and disconnects **all** agents. Use this only when you're the last one, or when you want to clean up:
+
+```
+/inter-agent-shutdown
+```
+
+**Recommended order:**
+1. Disconnect yourself first (`/inter-agent-disconnect`)
+2. If you started the server and no one else needs it, shut it down (`/inter-agent-shutdown`)
+3. Stop the server terminal process if it's still running
+
 ## User Acceptance Test
 
 To verify the extension works end-to-end:
