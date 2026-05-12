@@ -170,6 +170,25 @@ ${replyInstruction}`,
   );
 }
 
+function showOutgoingInContext(
+  pi: ExtensionAPI,
+  from: string,
+  text: string,
+  toInfo: string,
+) {
+  pi.sendMessage(
+    {
+      customType: "inter-agent-message",
+      content: `[inter-agent message sent by you (${from}) ${toInfo}]
+
+${text}`,
+      display: true,
+      details: { from, text, toInfo, outgoing: true },
+    },
+    { triggerTurn: false, deliverAs: "steer" },
+  );
+}
+
 function execScript(
   script: string,
   args: string[],
@@ -422,6 +441,7 @@ export default function (pi: ExtensionAPI) {
         return;
       }
       notify("[inter-agent] sent", `to ${to}`);
+      showOutgoingInContext(pi, name, text, `→ ${to}`);
     },
   });
 
@@ -446,6 +466,7 @@ export default function (pi: ExtensionAPI) {
         return;
       }
       notify("[inter-agent] broadcast", "sent");
+      showOutgoingInContext(pi, name, text, "broadcast");
     },
   });
 
@@ -551,6 +572,7 @@ export default function (pi: ExtensionAPI) {
       if (result.code !== 0) {
         throw new Error(`Send failed: ${result.stderr || result.stdout}`);
       }
+      showOutgoingInContext(pi, name, text, `→ ${to}`);
       return {
         content: [{ type: "text" as const, text: `Message sent to ${to}` }],
         details: { to, text },
@@ -574,6 +596,7 @@ export default function (pi: ExtensionAPI) {
       if (result.code !== 0) {
         throw new Error(`Broadcast failed: ${result.stderr || result.stdout}`);
       }
+      showOutgoingInContext(pi, name, text, "broadcast");
       return {
         content: [{ type: "text" as const, text: "Broadcast sent" }],
         details: { text },
