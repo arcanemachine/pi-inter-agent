@@ -120,6 +120,23 @@ function notify(title: string, body: string, type: "info" | "warning" | "error" 
   currentCtx?.ui.notify(truncate(`${title}: ${body}`, NOTIFY_MAX_LEN), type);
 }
 
+function sendToContext(pi: ExtensionAPI, from: string, text: string, toInfo: string) {
+  const shouldTrigger =
+    !!currentCtx &&
+    (currentCtx as any).isIdle?.() === true &&
+    (currentCtx as any).hasPendingMessages?.() !== true;
+
+  pi.sendMessage(
+    {
+      customType: "inter-agent-message",
+      content: `[inter-agent] ${from} ${toInfo}: ${text}`,
+      display: true,
+      details: { from, text, toInfo },
+    },
+    shouldTrigger ? { triggerTurn: true, deliverAs: "followUp" } : undefined,
+  );
+}
+
 function execScript(script: string, args: string[]): Promise<{ stdout: string; stderr: string; code: number | null }> {
   return new Promise((resolve) => {
     const env = { ...process.env, PYTHONUNBUFFERED: "1" };
@@ -183,6 +200,7 @@ function startListener(pi: ExtensionAPI, ctx: ExtensionContext, config: InterAge
           const text = msg.text || "";
           const toInfo = msg.to ? `→ ${msg.to}` : "broadcast";
           notify(`[inter-agent] ${from} ${toInfo}`, text);
+          sendToContext(pi, from, text, toInfo);
         }
       } catch {
         // Ignore non-JSON lines
