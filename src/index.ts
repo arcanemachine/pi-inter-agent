@@ -33,7 +33,7 @@ interface Settings {
   interAgent?: InterAgentConfig;
 }
 
-const DEFAULT_PROJECT_PATH = "/workspace/projects/inter-agent";
+const DEFAULT_PROJECT_PATH = join(homedir(), ".local", "share", "inter-agent");
 
 function loadConfig(): InterAgentConfig {
   const globalSettingsPath = join(homedir(), ".pi", "agent", "settings.json");

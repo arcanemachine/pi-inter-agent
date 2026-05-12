@@ -15,25 +15,30 @@ Pi extension for connecting to the [inter-agent](https://github.com/arcanemachin
 ### From Local Path
 
 ```bash
-pi install /workspace/projects/pi/pi-inter-agent
+pi install /path/to/pi-inter-agent
 ```
 
 ### Direct Load (Development)
 
 ```bash
-pi -e /workspace/projects/pi/pi-inter-agent/src/index.ts
+pi -e /path/to/pi-inter-agent/src/index.ts
 ```
 
 ## Prerequisites
 
-The inter-agent server must be running in your workspace:
+The inter-agent server must be running on your machine:
 
 ```bash
-cd /workspace/projects/inter-agent
+cd /path/to/inter-agent
 uv run inter-agent-server
 ```
 
-The extension calls the `inter-agent-pi` and `inter-agent-connect` scripts directly from the project's virtual environment. By default it looks in `/workspace/projects/inter-agent/.venv/bin/`. You can override this path via `settings.json` (see Configuration).
+The extension calls the `inter-agent-pi` and `inter-agent-connect` scripts directly from the project's virtual environment. It resolves the project path in this order:
+
+1. `interAgent.projectPath` from `.pi/settings.json` or `~/.pi/agent/settings.json`
+2. `~/.local/share/inter-agent` (default fallback)
+
+If neither location works, the extension will error and you must set `interAgent.projectPath`.
 
 ## Commands
 
@@ -63,18 +68,20 @@ You can override the default inter-agent project path in your Pi `settings.json`
 ```json
 {
   "interAgent": {
-    "projectPath": "/workspace/projects/inter-agent"
+    "projectPath": "/path/to/inter-agent"
   }
 }
 ```
 
 Project settings (`.pi/settings.json`) override global settings (`~/.pi/agent/settings.json`).
 
+If you do not set a project path, the extension falls back to `~/.local/share/inter-agent`.
+
 ## Example Workflow
 
 1. Start the server in another terminal:
    ```bash
-   cd /workspace/projects/inter-agent
+   cd /path/to/inter-agent
    uv run inter-agent-server
    ```
 
@@ -129,18 +136,18 @@ To verify the extension works end-to-end:
 
 1. **Install the extension** (one time):
    ```bash
-   pi install /workspace/projects/pi/pi-inter-agent
+   pi install /path/to/pi-inter-agent
    ```
 
 2. **Start the inter-agent server** (in a separate terminal):
    ```bash
-   cd /workspace/projects/inter-agent
+   cd /path/to/inter-agent
    uv run inter-agent-server
    ```
 
 3. **Start Pi with the extension**:
    ```bash
-   pi -e /workspace/projects/pi/pi-inter-agent/src/index.ts
+   pi -e /path/to/pi-inter-agent/src/index.ts
    ```
 
 4. **Run these commands in Pi** and confirm each works:
@@ -157,7 +164,7 @@ To verify the extension works end-to-end:
 ## Development
 
 ```bash
-cd /workspace/projects/pi/pi-inter-agent
+cd /path/to/pi/pi-inter-agent
 npm install
 npm run typecheck
 npm run build
