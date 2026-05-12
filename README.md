@@ -82,44 +82,48 @@ If you do not set a project path, the extension falls back to `~/.local/share/in
 
 ## Commands
 
-| Command | Usage | Description |
-|---------|-------|-------------|
-| `/inter-agent-connect` | `/inter-agent-connect <name> [label]` | Connect to the bus as `name` |
-| `/inter-agent-disconnect` | `/inter-agent-disconnect` | Disconnect from the bus |
-| `/inter-agent-send` | `/inter-agent-send <to> <text>` | Send a direct message |
-| `/inter-agent-broadcast` | `/inter-agent-broadcast <text>` | Broadcast to all agents |
-| `/inter-agent-list` | `/inter-agent-list` | List connected sessions |
-| `/inter-agent-status` | `/inter-agent-status` | Check server status |
-| `/inter-agent-shutdown` | `/inter-agent-shutdown` | Stop the server |
+| Command                   | Usage                                 | Description                  |
+| ------------------------- | ------------------------------------- | ---------------------------- |
+| `/inter-agent-connect`    | `/inter-agent-connect <name> [label]` | Connect to the bus as `name` |
+| `/inter-agent-disconnect` | `/inter-agent-disconnect`             | Disconnect from the bus      |
+| `/inter-agent-send`       | `/inter-agent-send <to> <text>`       | Send a direct message        |
+| `/inter-agent-broadcast`  | `/inter-agent-broadcast <text>`       | Broadcast to all agents      |
+| `/inter-agent-list`       | `/inter-agent-list`                   | List connected sessions      |
+| `/inter-agent-status`     | `/inter-agent-status`                 | Check server status          |
+| `/inter-agent-shutdown`   | `/inter-agent-shutdown`               | Stop the server              |
 
 ## Tools
 
-| Tool | Description |
-|------|-------------|
-| `inter_agent_send` | Send a direct message to a routing name |
-| `inter_agent_broadcast` | Broadcast a message to all agents |
-| `inter_agent_list` | List connected agent sessions |
-| `inter_agent_status` | Check server availability and identity |
+| Tool                    | Description                             |
+| ----------------------- | --------------------------------------- |
+| `inter_agent_send`      | Send a direct message to a routing name |
+| `inter_agent_broadcast` | Broadcast a message to all agents       |
+| `inter_agent_list`      | List connected agent sessions           |
+| `inter_agent_status`    | Check server availability and identity  |
 
 ## Example Workflow
 
 1. Start the server in another terminal:
+
    ```bash
    cd ~/.local/share/inter-agent
    uv run inter-agent-server
    ```
 
 2. In Pi, connect to the bus:
+
    ```
    /inter-agent-connect my-pi-session --label "Pi Agent"
    ```
 
 3. Send a message to another agent:
+
    ```
    /inter-agent-send agent-b "run tests"
    ```
 
 4. Or broadcast to everyone:
+
    ```
    /inter-agent-broadcast "build is green"
    ```
@@ -150,6 +154,7 @@ This stops the server and disconnects **all** agents. Use this only when you're 
 ```
 
 **Recommended order:**
+
 1. Disconnect yourself first (`/inter-agent-disconnect`)
 2. If you started the server and no one else needs it, shut it down (`/inter-agent-shutdown`)
 3. Stop the server terminal process if it's still running — go to the terminal where you ran `uv run inter-agent-server` and press **Ctrl+C**
@@ -159,6 +164,7 @@ This stops the server and disconnects **all** agents. Use this only when you're 
 To verify the extension works end-to-end:
 
 1. **Install the server** (one time):
+
    ```bash
    git clone https://github.com/arcanemachine/inter-agent ~/.local/share/inter-agent
    cd ~/.local/share/inter-agent
@@ -166,17 +172,20 @@ To verify the extension works end-to-end:
    ```
 
 2. **Install the extension** (one time):
+
    ```bash
    pi install https://github.com/arcanemachine/pi-inter-agent
    ```
 
 3. **Start the inter-agent server** (in a separate terminal):
+
    ```bash
    cd ~/.local/share/inter-agent
    uv run inter-agent-server
    ```
 
 4. **Start Pi with the extension**:
+
    ```bash
    pi -e /path/to/pi-inter-agent/src/index.ts
    ```
