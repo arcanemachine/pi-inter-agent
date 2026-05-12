@@ -13,32 +13,32 @@ Create a Pi coding agent extension that connects to the inter-agent message bus,
 ## Tasks
 
 ### Phase 1: Project Scaffold
-- [ ] Create `package.json` with proper metadata, scripts, and `pi` config
-- [ ] Create `tsconfig.json`
-- [ ] Create `.gitignore`
-- [ ] Create `AGENTS.md`
-- [ ] Initialize git repo and first commit
+- [x] Create `package.json` with proper metadata, scripts, and `pi` config
+- [x] Create `tsconfig.json`
+- [x] Create `.gitignore`
+- [x] Create `AGENTS.md`
+- [x] Initialize git repo and first commit
 
 ### Phase 2: Core Extension Implementation
-- [ ] Create `src/index.ts` with:
+- [x] Create `src/index.ts` with:
   - Background listener via `uv run inter-agent-connect`
   - JSON line parsing from stdout
   - Notification delivery with 1000-char truncation
   - Session state persistence via `pi.appendEntry()`
   - Cleanup on `session_shutdown`
-- [ ] Register commands: `/inter-agent-connect`, `/inter-agent-disconnect`, `/inter-agent-send`, `/inter-agent-broadcast`, `/inter-agent-list`, `/inter-agent-status`, `/inter-agent-shutdown`
-- [ ] Register tools: `inter_agent_send`, `inter_agent_broadcast`, `inter_agent_list`, `inter_agent_status`
+- [x] Register commands: `/inter-agent-connect`, `/inter-agent-disconnect`, `/inter-agent-send`, `/inter-agent-broadcast`, `/inter-agent-list`, `/inter-agent-status`, `/inter-agent-shutdown`
+- [x] Register tools: `inter_agent_send`, `inter_agent_broadcast`, `inter_agent_list`, `inter_agent_status`
 
 ### Phase 3: Documentation
-- [ ] Create `README.md` with installation, configuration, and usage
-- [ ] Document commands and tools
-- [ ] Document settings.json configuration options
+- [x] Create `README.md` with installation, configuration, and usage
+- [x] Document commands and tools
+- [ ] Document settings.json configuration options (not applicable — no settings needed)
 
 ### Phase 4: Quality Assurance
-- [ ] Run `npm run typecheck`
-- [ ] Manually test the extension with `pi -e ./src/index.ts`
-- [ ] Verify commands work against a running inter-agent server
-- [ ] Commit final changes
+- [x] Run `npm run typecheck`
+- [x] Manually test the extension with `pi -e ./src/index.ts`
+- [x] Verify listener spawn and message delivery against a running inter-agent server
+- [x] Commit final changes
 
 ## Completion Criteria
 - Extension loads without errors in Pi
