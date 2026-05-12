@@ -121,11 +121,6 @@ function notify(title: string, body: string, type: "info" | "warning" | "error" 
 }
 
 function sendToContext(pi: ExtensionAPI, from: string, text: string, toInfo: string) {
-  const shouldTrigger =
-    !!currentCtx &&
-    (currentCtx as any).isIdle?.() === true &&
-    (currentCtx as any).hasPendingMessages?.() !== true;
-
   pi.sendMessage(
     {
       customType: "inter-agent-message",
@@ -133,7 +128,7 @@ function sendToContext(pi: ExtensionAPI, from: string, text: string, toInfo: str
       display: true,
       details: { from, text, toInfo },
     },
-    shouldTrigger ? { triggerTurn: true, deliverAs: "followUp" } : undefined,
+    { triggerTurn: true, deliverAs: "steer" },
   );
 }
 
