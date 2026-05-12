@@ -140,7 +140,12 @@ function execScript(script: string, args: string[]): Promise<{ stdout: string; s
       resolve({ stdout, stderr, code });
     });
     proc.on("error", (err) => {
-      stderr += String(err);
+      const nodeErr = err as NodeJS.ErrnoException;
+      if (nodeErr.code === "ENOENT") {
+        stderr += `inter-agent not found at ${script}. Ensure the server is installed and available at the expected path. See Configuration in the README.`;
+      } else {
+        stderr += String(err);
+      }
       resolve({ stdout, stderr, code: null });
     });
   });
@@ -202,7 +207,12 @@ function startListener(pi: ExtensionAPI, ctx: ExtensionContext, config: InterAge
   });
 
   proc.on("error", (err) => {
-    notify("[inter-agent] listener error", String(err), "error");
+    const nodeErr = err as NodeJS.ErrnoException;
+    if (nodeErr.code === "ENOENT") {
+      notify("[inter-agent] listener error", `inter-agent-connect not found at ${scripts.connect}. Ensure the server is installed and available at the expected path. See Configuration in the README.`, "error");
+    } else {
+      notify("[inter-agent] listener error", String(err), "error");
+    }
   });
 
   const state: ConnectionState = { name, label, connected: true };
