@@ -31,7 +31,7 @@ uv run inter-agent-server
 ### 2. Install the Pi extension
 
 ```bash
-pi install git:github.com/arcanemachine/pi-inter-agent
+pi install https://github.com/arcanemachine/pi-inter-agent
 ```
 
 Or from a local clone:
@@ -167,7 +167,7 @@ To verify the extension works end-to-end:
 
 2. **Install the extension** (one time):
    ```bash
-   pi install git:github.com/arcanemachine/pi-inter-agent
+   pi install https://github.com/arcanemachine/pi-inter-agent
    ```
 
 3. **Start the inter-agent server** (in a separate terminal):

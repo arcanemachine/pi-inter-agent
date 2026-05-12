@@ -7,7 +7,7 @@
  *
  * Installation:
  * ```bash
- * pi install git:github.com/arcanemachine/pi-inter-agent
+ * pi install https://github.com/arcanemachine/pi-inter-agent
  * ```
  *
  * Or load directly:
