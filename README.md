@@ -121,7 +121,7 @@ This stops the server and disconnects **all** agents. Use this only when you're 
 **Recommended order:**
 1. Disconnect yourself first (`/inter-agent-disconnect`)
 2. If you started the server and no one else needs it, shut it down (`/inter-agent-shutdown`)
-3. Stop the server terminal process if it's still running
+3. Stop the server terminal process if it's still running — go to the terminal where you ran `uv run inter-agent-server` and press **Ctrl+C**
 
 ## User Acceptance Test
 
