@@ -220,8 +220,7 @@ function stopListener() {
 
 function updateStatus(ctx: ExtensionContext, state: ConnectionState | null) {
   if (state?.connected) {
-    const labelInfo = state.label ? ` (${state.label})` : "";
-    ctx.ui.setStatus("inter-agent", `🌐 ${state.name}${labelInfo}`);
+    ctx.ui.setStatus("inter-agent", `Inter-agent name: ${state.name} 🌐 `);
   } else {
     ctx.ui.setStatus("inter-agent", undefined);
   }
