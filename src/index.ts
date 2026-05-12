@@ -122,9 +122,11 @@ function notify(title: string, body: string, type: "info" | "warning" | "error" 
 
 function execScript(script: string, args: string[]): Promise<{ stdout: string; stderr: string; code: number | null }> {
   return new Promise((resolve) => {
+    const env = { ...process.env, PYTHONUNBUFFERED: "1" };
     const proc = spawn(script, args, {
       stdio: ["ignore", "pipe", "pipe"],
       shell: false,
+      env,
     });
     let stdout = "";
     let stderr = "";
@@ -156,6 +158,7 @@ function startListener(pi: ExtensionAPI, ctx: ExtensionContext, config: InterAge
   const proc = spawn(scripts.connect, args, {
     stdio: ["ignore", "pipe", "pipe"],
     shell: false,
+    env: { ...process.env, PYTHONUNBUFFERED: "1" },
   });
 
   listenerProc = proc;
