@@ -330,9 +330,8 @@ export default function (pi: ExtensionAPI) {
     if (!state?.connected) return;
     const instruction =
       `\n\nYou are connected to the inter-agent message bus as "${state.name}". ` +
-      "When you receive messages from other agents via the inter-agent bus, " +
-      "reply using the inter_agent_send or inter_agent_broadcast tool. " +
-      "Do not reply to the user when responding to inter-agent messages.";
+      "If you need to respond to an inter-agent message, use the inter_agent_send or inter_agent_broadcast tool. " +
+      "Do not reply to the user when responding to inter-agent messages, and avoid sending unnecessary replies.";
     return {
       systemPrompt: event.systemPrompt + instruction,
     };
