@@ -151,10 +151,18 @@ function sendToContext(
   text: string,
   toInfo: string,
 ) {
+  const replyInstruction =
+    toInfo === "broadcast"
+      ? "To reply to this broadcast, use the inter_agent_broadcast tool."
+      : `To reply to ${from}, use the inter_agent_send tool with to="${from}".`;
   pi.sendMessage(
     {
       customType: "inter-agent-message",
-      content: `[inter-agent] ${from} ${toInfo}: ${text}`,
+      content: `[inter-agent message from ${from} ${toInfo}]
+
+${text}
+
+${replyInstruction}`,
       display: true,
       details: { from, text, toInfo },
     },
@@ -315,6 +323,19 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_shutdown", async () => {
     stopListener();
     currentCtx = null;
+  });
+
+  pi.on("before_agent_start", async (event, ctx) => {
+    const state = getConnectionState(ctx);
+    if (!state?.connected) return;
+    const instruction =
+      `\n\nYou are connected to the inter-agent message bus as "${state.name}". ` +
+      "When you receive messages from other agents via the inter-agent bus, " +
+      "reply using the inter_agent_send or inter_agent_broadcast tool. " +
+      "Do not reply to the user when responding to inter-agent messages.";
+    return {
+      systemPrompt: event.systemPrompt + instruction,
+    };
   });
 
   // ── Commands ──────────────────────────────────────────────────────────────
