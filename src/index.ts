@@ -7,12 +7,12 @@
  *
  * Installation:
  * ```bash
- * pi install /workspace/projects/pi/pi-inter-agent
+ * pi install git:github.com/arcanemachine/pi-inter-agent
  * ```
  *
  * Or load directly:
  * ```bash
- * pi -e /workspace/projects/pi/pi-inter-agent/src/index.ts
+ * pi -e /path/to/pi-inter-agent/src/index.ts
  * ```
  */
 

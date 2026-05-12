@@ -12,9 +12,33 @@ Pi extension for connecting to the [inter-agent](https://github.com/arcanemachin
 
 ## Installation
 
-### From Local Path
+### 1. Install the inter-agent server
+
+The extension needs the inter-agent server running locally. Clone it to the default path:
 
 ```bash
+git clone https://github.com/arcanemachine/inter-agent ~/.local/share/inter-agent
+cd ~/.local/share/inter-agent
+uv sync
+```
+
+Then start the server (keep this terminal open):
+
+```bash
+uv run inter-agent-server
+```
+
+### 2. Install the Pi extension
+
+```bash
+pi install git:github.com/arcanemachine/pi-inter-agent
+```
+
+Or from a local clone:
+
+```bash
+git clone https://github.com/arcanemachine/pi-inter-agent
+cd pi-inter-agent
 pi install /path/to/pi-inter-agent
 ```
 
@@ -40,6 +64,22 @@ The extension calls the `inter-agent-pi` and `inter-agent-connect` scripts direc
 
 If neither location works, the extension will error and you must set `interAgent.projectPath`.
 
+## Configuration
+
+You can override the default inter-agent project path in your Pi `settings.json`:
+
+```json
+{
+  "interAgent": {
+    "projectPath": "/path/to/inter-agent"
+  }
+}
+```
+
+Project settings (`.pi/settings.json`) override global settings (`~/.pi/agent/settings.json`).
+
+If you do not set a project path, the extension falls back to `~/.local/share/inter-agent`.
+
 ## Commands
 
 | Command | Usage | Description |
@@ -61,27 +101,11 @@ If neither location works, the extension will error and you must set `interAgent
 | `inter_agent_list` | List connected agent sessions |
 | `inter_agent_status` | Check server availability and identity |
 
-## Configuration
-
-You can override the default inter-agent project path in your Pi `settings.json`:
-
-```json
-{
-  "interAgent": {
-    "projectPath": "/path/to/inter-agent"
-  }
-}
-```
-
-Project settings (`.pi/settings.json`) override global settings (`~/.pi/agent/settings.json`).
-
-If you do not set a project path, the extension falls back to `~/.local/share/inter-agent`.
-
 ## Example Workflow
 
 1. Start the server in another terminal:
    ```bash
-   cd /path/to/inter-agent
+   cd ~/.local/share/inter-agent
    uv run inter-agent-server
    ```
 
@@ -134,23 +158,30 @@ This stops the server and disconnects **all** agents. Use this only when you're 
 
 To verify the extension works end-to-end:
 
-1. **Install the extension** (one time):
+1. **Install the server** (one time):
    ```bash
-   pi install /path/to/pi-inter-agent
+   git clone https://github.com/arcanemachine/inter-agent ~/.local/share/inter-agent
+   cd ~/.local/share/inter-agent
+   uv sync
    ```
 
-2. **Start the inter-agent server** (in a separate terminal):
+2. **Install the extension** (one time):
    ```bash
-   cd /path/to/inter-agent
+   pi install git:github.com/arcanemachine/pi-inter-agent
+   ```
+
+3. **Start the inter-agent server** (in a separate terminal):
+   ```bash
+   cd ~/.local/share/inter-agent
    uv run inter-agent-server
    ```
 
-3. **Start Pi with the extension**:
+4. **Start Pi with the extension**:
    ```bash
    pi -e /path/to/pi-inter-agent/src/index.ts
    ```
 
-4. **Run these commands in Pi** and confirm each works:
+5. **Run these commands in Pi** and confirm each works:
    - `/inter-agent-status` → should show "State: available"
    - `/inter-agent-connect test-agent` → should show "connected"
    - `/inter-agent-list` → should show "no agents connected" (or your own session)
@@ -159,7 +190,7 @@ To verify the extension works end-to-end:
    - `/inter-agent-disconnect` → should show "disconnected"
    - `/inter-agent-shutdown` → should show "server stopped" (and other sessions disconnect)
 
-5. **Verify incoming messages**: In another terminal, connect a second agent and send a message to `test-agent`. You should see a Pi notification.
+6. **Verify incoming messages**: In another terminal, connect a second agent and send a message to `test-agent`. You should see a Pi notification.
 
 ## Development
 
