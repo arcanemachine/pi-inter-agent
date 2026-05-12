@@ -19,12 +19,68 @@
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 import { spawn, ChildProcess } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+
+// ── Configuration ───────────────────────────────────────────────────────────
+
+interface InterAgentConfig {
+  projectPath?: string;
+}
+
+interface Settings {
+  interAgent?: InterAgentConfig;
+}
+
+const DEFAULT_PROJECT_PATH = "/workspace/projects/inter-agent";
+
+function loadConfig(): InterAgentConfig {
+  const globalSettingsPath = join(homedir(), ".pi", "agent", "settings.json");
+  const projectSettingsPath = join(process.cwd(), ".pi", "settings.json");
+
+  let config: InterAgentConfig = { projectPath: DEFAULT_PROJECT_PATH };
+
+  // Load global settings first
+  if (existsSync(globalSettingsPath)) {
+    try {
+      const parsed: Settings = JSON.parse(readFileSync(globalSettingsPath, "utf-8"));
+      if (parsed.interAgent) {
+        config = { ...config, ...parsed.interAgent };
+      }
+    } catch {
+      // Invalid JSON, ignore
+    }
+  }
+
+  // Project settings override global
+  if (existsSync(projectSettingsPath)) {
+    try {
+      const parsed: Settings = JSON.parse(readFileSync(projectSettingsPath, "utf-8"));
+      if (parsed.interAgent) {
+        config = { ...config, ...parsed.interAgent };
+      }
+    } catch {
+      // Invalid JSON, ignore
+    }
+  }
+
+  return config;
+}
+
+function getScripts(config: InterAgentConfig) {
+  const projectPath = config.projectPath || DEFAULT_PROJECT_PATH;
+  const binDir = join(projectPath, ".venv", "bin");
+  return {
+    pi: join(binDir, "inter-agent-pi"),
+    connect: join(binDir, "inter-agent-connect"),
+  };
+}
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
 const NOTIFY_MAX_LEN = 1000;
 const DEFAULT_NAME = "pi";
-const INTER_AGENT_PROJECT = "/workspace/projects/inter-agent";
 
 // ── State ───────────────────────────────────────────────────────────────────
 
@@ -64,14 +120,11 @@ function notify(title: string, body: string, type: "info" | "warning" | "error" 
   currentCtx?.ui.notify(truncate(`${title}: ${body}`, NOTIFY_MAX_LEN), type);
 }
 
-function execUv(args: string[]): Promise<{ stdout: string; stderr: string; code: number | null }> {
+function execScript(script: string, args: string[]): Promise<{ stdout: string; stderr: string; code: number | null }> {
   return new Promise((resolve) => {
-    const env = { ...process.env, PYTHONUNBUFFERED: "1" };
-    const proc = spawn("uv", ["run", ...args], {
+    const proc = spawn(script, args, {
       stdio: ["ignore", "pipe", "pipe"],
       shell: false,
-      cwd: INTER_AGENT_PROJECT,
-      env,
     });
     let stdout = "";
     let stderr = "";
@@ -93,18 +146,16 @@ function execUv(args: string[]): Promise<{ stdout: string; stderr: string; code:
 
 // ── Listener Management ─────────────────────────────────────────────────────
 
-function startListener(pi: ExtensionAPI, ctx: ExtensionContext, name: string, label: string | null) {
+function startListener(pi: ExtensionAPI, ctx: ExtensionContext, config: InterAgentConfig, name: string, label: string | null) {
   stopListener();
 
-  const args = ["inter-agent-connect", name];
+  const scripts = getScripts(config);
+  const args = [name];
   if (label) args.push("--label", label);
 
-  const env = { ...process.env, PYTHONUNBUFFERED: "1" };
-  const proc = spawn("uv", ["run", ...args], {
+  const proc = spawn(scripts.connect, args, {
     stdio: ["ignore", "pipe", "pipe"],
     shell: false,
-    cwd: INTER_AGENT_PROJECT,
-    env,
   });
 
   listenerProc = proc;
@@ -176,13 +227,16 @@ function updateStatus(ctx: ExtensionContext, state: ConnectionState | null) {
 // ── Extension Export ────────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
+  const config = loadConfig();
+  const scripts = getScripts(config);
+
   // ── Session Lifecycle ─────────────────────────────────────────────────────
 
   pi.on("session_start", async (_event, ctx) => {
     currentCtx = ctx;
     const state = getConnectionState(ctx);
     if (state?.connected) {
-      startListener(pi, ctx, state.name, state.label);
+      startListener(pi, ctx, config, state.name, state.label);
       notify("[inter-agent] reconnected", `as ${state.name}`);
     }
   });
@@ -202,7 +256,7 @@ export default function (pi: ExtensionAPI) {
       const label = parts[1] || null;
 
       // Check if server is running
-      const status = await execUv(["inter-agent-pi", "status", "--json"]);
+      const status = await execScript(scripts.pi, ["status", "--json"]);
       if (status.code !== 0) {
         notify("[inter-agent] connect failed", "server not reachable", "error");
         return;
@@ -221,7 +275,7 @@ export default function (pi: ExtensionAPI) {
         return;
       }
 
-      startListener(pi, ctx, name, label);
+      startListener(pi, ctx, config, name, label);
       notify("[inter-agent] connected", `as ${name}${label ? ` (${label})` : ""}`);
     },
   });
@@ -248,7 +302,7 @@ export default function (pi: ExtensionAPI) {
         return;
       }
       const [, to, text] = match;
-      const result = await execUv(["inter-agent-pi", "send", to, text]);
+      const result = await execScript(scripts.pi, ["send", to, text]);
       if (result.code !== 0) {
         notify("[inter-agent] send failed", truncate(result.stderr || result.stdout, 200), "error");
         return;
@@ -265,7 +319,7 @@ export default function (pi: ExtensionAPI) {
         notify("[inter-agent] broadcast failed", "message required", "error");
         return;
       }
-      const result = await execUv(["inter-agent-pi", "broadcast", text]);
+      const result = await execScript(scripts.pi, ["broadcast", text]);
       if (result.code !== 0) {
         notify("[inter-agent] broadcast failed", truncate(result.stderr || result.stdout, 200), "error");
         return;
@@ -277,7 +331,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerCommand("inter-agent-list", {
     description: "List connected agent sessions",
     handler: async (_args, _ctx) => {
-      const result = await execUv(["inter-agent-pi", "list", "--json"]);
+      const result = await execScript(scripts.pi, ["list", "--json"]);
       if (result.code !== 0) {
         notify("[inter-agent] list failed", truncate(result.stderr || result.stdout, 200), "error");
         return;
@@ -300,7 +354,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerCommand("inter-agent-status", {
     description: "Check inter-agent server status",
     handler: async (_args, _ctx) => {
-      const result = await execUv(["inter-agent-pi", "status", "--json"]);
+      const result = await execScript(scripts.pi, ["status", "--json"]);
       if (result.code !== 0) {
         notify("[inter-agent] status failed", truncate(result.stderr || result.stdout, 200), "error");
         return;
@@ -319,7 +373,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerCommand("inter-agent-shutdown", {
     description: "Shut down the inter-agent server",
     handler: async (_args, ctx) => {
-      const result = await execUv(["inter-agent-pi", "shutdown"]);
+      const result = await execScript(scripts.pi, ["shutdown"]);
       if (result.code !== 0) {
         notify("[inter-agent] shutdown failed", truncate(result.stderr || result.stdout, 200), "error");
         return;
@@ -346,7 +400,7 @@ export default function (pi: ExtensionAPI) {
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
       const { to, text } = params as { to: string; text: string };
-      const result = await execUv(["inter-agent-pi", "send", to, text]);
+      const result = await execScript(scripts.pi, ["send", to, text]);
       if (result.code !== 0) {
         throw new Error(`Send failed: ${result.stderr || result.stdout}`);
       }
@@ -366,7 +420,7 @@ export default function (pi: ExtensionAPI) {
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
       const { text } = params as { text: string };
-      const result = await execUv(["inter-agent-pi", "broadcast", text]);
+      const result = await execScript(scripts.pi, ["broadcast", text]);
       if (result.code !== 0) {
         throw new Error(`Broadcast failed: ${result.stderr || result.stdout}`);
       }
@@ -383,7 +437,7 @@ export default function (pi: ExtensionAPI) {
     description: "List all connected agent sessions on the inter-agent bus",
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, _ctx) {
-      const result = await execUv(["inter-agent-pi", "list", "--json"]);
+      const result = await execScript(scripts.pi, ["list", "--json"]);
       if (result.code !== 0) {
         throw new Error(`List failed: ${result.stderr || result.stdout}`);
       }
@@ -407,7 +461,7 @@ export default function (pi: ExtensionAPI) {
     description: "Check the status of the inter-agent server",
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, _ctx) {
-      const result = await execUv(["inter-agent-pi", "status", "--json"]);
+      const result = await execScript(scripts.pi, ["status", "--json"]);
       if (result.code !== 0) {
         throw new Error(`Status check failed: ${result.stderr || result.stdout}`);
       }
