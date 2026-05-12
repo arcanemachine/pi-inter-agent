@@ -33,7 +33,7 @@ cd /workspace/projects/inter-agent
 uv run inter-agent-server
 ```
 
-The extension uses `uv run inter-agent-pi ...` and `uv run inter-agent-connect ...` internally, so the inter-agent package must be installed in the active virtual environment.
+The extension calls the `inter-agent-pi` and `inter-agent-connect` scripts directly from the project's virtual environment. By default it looks in `/workspace/projects/inter-agent/.venv/bin/`. You can override this path via `settings.json` (see Configuration).
 
 ## Commands
 
@@ -56,10 +56,25 @@ The extension uses `uv run inter-agent-pi ...` and `uv run inter-agent-connect .
 | `inter_agent_list` | List connected agent sessions |
 | `inter_agent_status` | Check server availability and identity |
 
+## Configuration
+
+You can override the default inter-agent project path in your Pi `settings.json`:
+
+```json
+{
+  "interAgent": {
+    "projectPath": "/workspace/projects/inter-agent"
+  }
+}
+```
+
+Project settings (`.pi/settings.json`) override global settings (`~/.pi/agent/settings.json`).
+
 ## Example Workflow
 
 1. Start the server in another terminal:
    ```bash
+   cd /workspace/projects/inter-agent
    uv run inter-agent-server
    ```
 
@@ -82,6 +97,37 @@ The extension uses `uv run inter-agent-pi ...` and `uv run inter-agent-connect .
    ```
    /inter-agent-list
    ```
+
+## User Acceptance Test
+
+To verify the extension works end-to-end:
+
+1. **Install the extension** (one time):
+   ```bash
+   pi install /workspace/projects/pi/pi-inter-agent
+   ```
+
+2. **Start the inter-agent server** (in a separate terminal):
+   ```bash
+   cd /workspace/projects/inter-agent
+   uv run inter-agent-server
+   ```
+
+3. **Start Pi with the extension**:
+   ```bash
+   pi -e /workspace/projects/pi/pi-inter-agent/src/index.ts
+   ```
+
+4. **Run these commands in Pi** and confirm each works:
+   - `/inter-agent-status` → should show "State: available"
+   - `/inter-agent-connect test-agent` → should show "connected"
+   - `/inter-agent-list` → should show "no agents connected" (or your own session)
+   - `/inter-agent-send test-agent "hello self"` → should show "sent"
+   - `/inter-agent-broadcast "test broadcast"` → should show "sent"
+   - `/inter-agent-disconnect` → should show "disconnected"
+   - `/inter-agent-shutdown` → should show "server stopped" (and other sessions disconnect)
+
+5. **Verify incoming messages**: In another terminal, connect a second agent and send a message to `test-agent`. You should see a Pi notification.
 
 ## Development
 
