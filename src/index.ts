@@ -256,6 +256,21 @@ function startListener(
       if (!line.trim()) continue;
       try {
         const msg = JSON.parse(line);
+        if (msg.op === "welcome") {
+          continue;
+        }
+        if (msg.op === "error") {
+          const code = String(msg.code || "unknown");
+          const text = String(msg.message || "connection rejected");
+          notify(`[inter-agent] connect failed`, `${code}: ${text}`, "error");
+          stopListener();
+          const state = getConnectionState(ctx);
+          if (state) {
+            persistState(pi, { ...state, connected: false });
+            updateStatus(ctx, { ...state, connected: false });
+          }
+          continue;
+        }
         if (msg.op === "msg") {
           const fromRaw = msg.from_name || msg.from || "unknown";
           const textRaw = msg.text || "";
