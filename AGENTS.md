@@ -16,10 +16,12 @@ npm run format
 
 ## Commit Style
 
+Use [Conventional Commits](https://www.conventionalcommits.org/) style: `type: description` (e.g., `feat: add outgoing message echo`, `fix: resolve TypeScript scope error`).
+
 Match existing commits:
-- `Add initial extension implementation`
-- `Update README with configuration examples`
-- `Format code with Prettier`
+- `feat: add initial extension implementation`
+- `docs: update README with configuration examples`
+- `style: format code with Prettier`
 
 ## Dependencies and packaging
 
