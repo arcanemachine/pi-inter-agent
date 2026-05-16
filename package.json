@@ -1,5 +1,5 @@
 {
-  "name": "pi-inter-agent",
+  "name": "@arcanemachine/pi-inter-agent",
   "version": "0.1.0",
   "description": "Pi extension for connecting to the inter-agent message bus",
   "type": "module",
@@ -24,9 +24,11 @@
   },
   "author": "Nicholas Moen",
   "license": "MIT",
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.49"
+  },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "^0.74.0",
-    "@sinclair/typebox": "^0.34.49",
     "@types/node": "^25.3.0",
     "prettier": "^3.8.3",
     "typescript": "^5.7.2"
